@@ -101,10 +101,10 @@ docker compose exec dovecot-mailcow doveadm quota recalc -A
 3. Запускаем imapsync для переноса данных почты скриптом
 ```bash
 #!/bin/sh
-{ while IFS=',' read u p 
+{ while IFS=',' read iusername ipasswd 
     do 
-        ./imapsync --host1 "172.17.61.254" --user1 "$u" --password1 "$p" \
-                 --host2 "172.17.61.105" --user2 "$u" --password2 "$p" \
+        ./imapsync --host1 "172.17.61.254" --user1 "$iusername" --password1 "$ipasswd" \
+                 --host2 "172.17.61.105" --user2 "$iusername" --password2 "$ipasswd" \
                  --ssl1 --ssl2 --automap --delete2duplicates --skipcrossduplicates --compress1 --compress2
     done 
 } < userpasswd.lst
