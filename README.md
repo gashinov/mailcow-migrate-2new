@@ -1,37 +1,45 @@
 # mailcow-migrate-2new
 Миграция существующего сервера на новую установку
 
-1. Требования для переноса:
-1.1. Активировать доступ к API на серверах для чтения и записи (это два разных ключа!)
-1.2. Внести рабочий IP в список разрешенных. 
-
-1.3. Записать данные для подключения к исходному серверу
+## Требования для переноса:
+  1. Активировать доступ к API на серверах для чтения и записи (это два разных ключа!)
+  2. Внести рабочий IP в список разрешенных
+  3. Записать данные для подключения к серверу источнику
+```
 XHOSTNAME=172.17.61.254
 XAPIKEYR=
 XAPIKEYW= 
-
-1.4. Записать данные для подключения к серверу получателю
+```
+  4. Записать данные для подключения к серверу получателю
+```
 XHOSTNAME=172.17.61.105
 XAPIKEYR=
 XAPIKEYW= 
+```
+  5. На серверах смонтирован по NFS каталог резервных копий
+  6. Установлен imapsync на одном из серверов
 
-1.5. На серверах смонтирован по NFS каталог резервных копий
+## Готовим данные на сервере источнике
 
-2. Готовим данные для переноса
-
-2.1. Получаем список имеющихся ящиков от исходного сервера
+1. Получаем список имеющихся ящиков от исходного сервера
+```bash
 curl -X 'GET' 'https://mail.ep-group.ru/api/v1/get/mailbox/all' -H 'accept: application/json' -H 'X-API-Key: F11B82-D7FF18-10BBA9-962F44-8B8FAD' | jq '.[] | .username' > usernames.lst
+```
 
-2.2. Удаляем символы кавычек из файла
+2. Удаляем символы кавычек из файла
+```bash
 sed -i 's/"//g' usernames.lst
+```
 
-2.3. Получаем количество почтовых ящиков
+3. Получаем количество почтовых ящиков
+```bash
 curl -X 'GET' 'https://mail.ep-group.ru/api/v1/get/mailbox/all' -H 'accept: application/json' -H 'X-API-Key: F11B82-D7FF18-10BBA9-962F44-8B8FAD' | jq '.[] | .username' | wc -l
+```
 
-2.4. Создаём файл паролей passwords.lst по количеству полученных ящиков с помощью https://passwordsgenerator.net/
+4. Создаём файл паролей passwords.lst по количеству полученных ящиков с помощью https://passwordsgenerator.net/
 
-2.5. Создаём список логинов/паролей для рассылки пользователям с помощью этого скрипта
-
+5. Создаём список логинов/паролей для рассылки пользователям с помощью этого скрипта
+```bash
 #!/bin/bash
 
 # Assign file descriptors to users and passwords files
@@ -44,11 +52,10 @@ while read iusername <&3 && read ipasswd <&4 ; do
     #printf "\tCreating user: %s and password: %s\n" $iusername $ipasswd
     echo $iusername,$ipasswd >> userpasswd.lst
 done
+```
 
-EOF
-
-2.6. Меняем пароли на сервере источнике с помощью скрипта
-
+6. Меняем пароли на сервере источнике с помощью скрипта
+```bash
 #!/bin/bash
 
 # set X-API-Key w write permissions
@@ -73,22 +80,27 @@ curl --header "Content-Type: application/json" \
   http://$XHOSTNAME/api/v1/edit/mailbox
 
 done
+```
 
-EOF
-
-2.7. Снимаем резервную копию исходного сервера, исключаем из неё vmail
+7. Снимаем резервную копию исходного сервера, исключаем из неё vmail
+```bash
 MAILCOW_BACKUP_LOCATION=/mnt/nasx8/mailcow THREADS=8 ./helper-scripts/backup_and_restore.sh backup crypt redis rspamd postfix mysql
+```
 
-3. Перенос данных
+## Перенос данных на сервер получатель
 
-3.1. Восстанавливаем резервную копию на сервере получателе
+1. Восстанавливаем резервную копию на сервере получателе
+```bash
 MAILCOW_BACKUP_LOCATION=/mnt/nasx8/mailcow ./helper-scripts/backup_and_restore.sh backup crypt redis rspamd postfix mysql
+```
 
-3.2. Пересчитываем параметры квоты для пользователей на сервере получателе
+2. Пересчитываем параметры квоты для пользователей на сервере получателе
+```bash
 docker compose exec dovecot-mailcow doveadm quota recalc -A
+```
 
-3.3. Запускаем imapsync для переноса данных почты скриптом
-
+3. Запускаем imapsync для переноса данных почты скриптом
+```bash
 #!/bin/sh
 { while IFS=',' read u p 
     do 
@@ -97,13 +109,12 @@ docker compose exec dovecot-mailcow doveadm quota recalc -A
                  --ssl1 --ssl2 --automap --delete2duplicates --skipcrossduplicates --compress1 --compress2
     done 
 } < userpasswd.lst
+```
 
-EOF
-
-
-Установка imapsync
+### Установка imapsync
 
 * ставим зависимости
+```bash
 apt install \
  libauthen-ntlm-perl \
  libcgi-pm-perl \
@@ -136,9 +147,14 @@ apt install \
  make \
  time \
  cpanminus
+```
 
 * получаем скрипт
+```
 wget -N https://raw.githubusercontent.com/imapsync/imapsync/master/imapsync
+```
 
 * делаем его исполнимым
+```
 chmod +x imapsync
+```
