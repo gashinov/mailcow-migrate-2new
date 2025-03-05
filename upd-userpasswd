@@ -18,6 +18,8 @@ curl --header "Content-Type: application/json" \
   --header "X-API-Key: $XAPIKEY" \
   --request POST \
   --data '{"attr": {"password":"'"$ipasswd"'","password2":"'"$ipasswd"'"}, "items": "'"$iusername"'"}' \
-  http://$XHOSTNAME/api/v1/edit/mailbox
+  https://$XHOSTNAME/api/v1/edit/mailbox
+
+echo
 
 done < userpasswd.lst
