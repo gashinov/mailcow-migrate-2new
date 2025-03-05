@@ -48,9 +48,9 @@ exec 4< passwords.lst
 
 # Read user and password
 while read iusername <&3 && read ipasswd <&4 ; do
-    # Just print this for debugging
-    #printf "\tCreating user: %s and password: %s\n" $iusername $ipasswd
-    echo $iusername,$ipasswd >> userpasswd.lst
+  # Just print this for debugging
+  #printf "\tCreating user: %s and password: %s\n" $iusername $ipasswd
+  echo $iusername,$ipasswd >> userpasswd.lst
 done
 ```
 
@@ -102,11 +102,11 @@ docker compose exec dovecot-mailcow doveadm quota recalc -A
 ```bash
 #!/bin/sh
 { while IFS=',' read iusername ipasswd 
-    do 
-        ./imapsync --host1 "172.17.61.254" --user1 "$iusername" --password1 "$ipasswd" \
-                 --host2 "172.17.61.105" --user2 "$iusername" --password2 "$ipasswd" \
-                 --ssl1 --ssl2 --automap --delete2duplicates --skipcrossduplicates --compress1 --compress2
-    done 
+  do 
+    ./imapsync --host1 "172.17.61.254" --user1 "$iusername" --password1 "$ipasswd" \
+               --host2 "172.17.61.105" --user2 "$iusername" --password2 "$ipasswd" \
+               --ssl1 --ssl2 --automap --delete2duplicates --skipcrossduplicates --compress1 --compress2
+  done 
 } < userpasswd.lst
 ```
 
