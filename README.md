@@ -61,14 +61,13 @@ done
 # set X-API-Key w write permissions
 XAPIKEY=25EF16-BAA152-6C4A25-C7035B-F1BC94
 # set hostname
-XHOSTNAME=172.17.61.254
+XHOSTNAME=172.17.61.105
 
-# Assign file descriptors to users and passwords files
-exec 3< usernames.lst
-exec 4< passwords.lst
+# set IFS
+IFS=$','
 
 # Read user and password
-while read iusername <&3 && read ipasswd <&4 ; do
+while read -r iusername ipasswd; do
 
 # debug only
 # printf "\tCreating user: %s and password: %s\n" $iusername $ipasswd
@@ -79,7 +78,7 @@ curl --header "Content-Type: application/json" \
   --data '{"attr": {"password":"'"$ipasswd"'","password2":"'"$ipasswd"'"}, "items": "'"$iusername"'"}' \
   http://$XHOSTNAME/api/v1/edit/mailbox
 
-done
+done < userpasswd.lst
 ```
 
 7. Снимаем резервную копию исходного сервера, исключаем из неё vmail
