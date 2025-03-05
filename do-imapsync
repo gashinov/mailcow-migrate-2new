@@ -1,0 +1,7 @@
+#!/bin/bash
+while IFS=',' read iusername ipasswd 
+  do 
+    ./imapsync --host1 "172.17.61.254" --user1 "$iusername" --password1 "$ipasswd" \
+               --host2 "172.17.61.105" --user2 "$iusername" --password2 "$ipasswd" \
+               --ssl1 --ssl2 --automap --delete2duplicates --skipcrossduplicates --compress1 --compress2
+  done < file.txt
