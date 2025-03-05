@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# Assign file descriptors to users and passwords files
+exec 3< usernames.lst
+exec 4< passwords.lst
+
+# Read user and password
+while read iusername <&3 && read ipasswd <&4 ; do
+  # Just print this for debugging
+  # printf "\tCreating user: %s and password: %s\n" $iusername $ipasswd
+  echo $iusername,$ipasswd >> userpasswd.lst
+done
