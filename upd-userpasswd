@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # set X-API-Key w write permissions
-XAPIKEY=25EF16-BAA152-6C4A25-C7035B-F1BC94
+XAPIKEYW=bac72807-f4b9-408f-838d-71d81c59e8d2
 # set hostname
-XHOSTNAME=172.17.61.105
+XHOSTNAME=mx.mailcow.com
 
 # set IFS
 IFS=$','
@@ -15,7 +15,7 @@ while read -r iusername ipasswd; do
 # printf "\tCreating user: %s and password: %s\n" $iusername $ipasswd
 
 curl --header "Content-Type: application/json" \
-  --header "X-API-Key: $XAPIKEY" \
+  --header "X-API-Key: $XAPIKEYW" \
   --request POST \
   --data '{"attr": {"password":"'"$ipasswd"'","password2":"'"$ipasswd"'"}, "items": "'"$iusername"'"}' \
   https://$XHOSTNAME/api/v1/edit/mailbox
